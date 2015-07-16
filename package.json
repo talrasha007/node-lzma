@@ -1,0 +1,10 @@
+{
+  "name": "node-lzma",
+  "version": "0.0.1",
+  "repository": "https://github.com/talrasha007/node-lzma.git",
+  "description": "node bindings for the lzma compression library",
+  "readme": "node bindings for the lzma compression library",
+  "dependencies": {
+    "nan": "~1.8.4"
+  }
+}
