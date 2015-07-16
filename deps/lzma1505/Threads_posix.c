@@ -4,6 +4,7 @@ typedef int BOOL;
 #define TRUE 1
 #define FALSE 0
 
+#include "Types.h"
 #include "Threads.h"
 
 #ifdef ENV_BEOS
