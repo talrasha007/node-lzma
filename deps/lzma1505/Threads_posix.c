@@ -1,5 +1,9 @@
 /* Threads.c */
 
+typedef int BOOL;
+#define TRUE 1
+#define FALSE 0
+
 #include "Threads.h"
 
 #ifdef ENV_BEOS
