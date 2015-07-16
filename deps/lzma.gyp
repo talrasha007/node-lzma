@@ -15,12 +15,17 @@
         "lzma<(lzma_ver)/LzFindMt.c",
         "lzma<(lzma_ver)/LzmaDec.c",
         "lzma<(lzma_ver)/LzmaEnc.c",
-        "lzma<(lzma_ver)/LzmaLib.c",
-        "lzma<(lzma_ver)/Threads.c"
+        "lzma<(lzma_ver)/LzmaLib.c"
       ],
       "conditions": [
         [
+          "OS != 'win'", {
+            "sources": ["lzma<(lzma_ver)/Threads_posix.c"]
+          }
+        ],
+        [
           "OS == 'win'", {
+            "sources": ["lzma<(lzma_ver)/Threads_win.c"],
             "msvs_settings": {
               "VCCLCompilerTool": {
                 "EnableFunctionLevelLinking": "true",
