@@ -23,7 +23,7 @@ NAN_METHOD(compress) {
 
     if (args[2]->IsNumber()) {
         int argTh = args[2]->Int32Value();
-        if (argTh == 1 || argTh == 2) level = argTh;
+        if (argTh == 1 || argTh == 2) threads= argTh;
     }
 
     size_t len = Buffer::Length(args[0]);
