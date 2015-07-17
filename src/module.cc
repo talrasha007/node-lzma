@@ -1,5 +1,6 @@
+#include <memory>
+#include <vector>
 #include <nan.h>
-
 #include <LzmaLib.h>
 
 using namespace std;
@@ -33,8 +34,8 @@ NAN_METHOD(compress) {
     size_t propsSize = LZMA_PROPS_SIZE;
 
     size_t outLen = len + 128 + len / 3;
-    char* out = new char[outLen];
-    int res = LzmaCompress((unsigned char*)out + propsSize, &outLen, (unsigned char*)in, len, props, &propsSize, level, 0, -1, -1, -1, -1, threads);
+    char *out = new char[outLen];
+    LzmaCompress((unsigned char*)out + propsSize, &outLen, (unsigned char*)in, len, props, &propsSize, level, 0, -1, -1, -1, -1, threads);
 
     Local<Object> ret = NanNewBufferHandle(outLen);
     char *retBuf = Buffer::Data(ret);
@@ -44,16 +45,8 @@ NAN_METHOD(compress) {
     NanReturnValue(ret);
 }
 
-NAN_METHOD(decompress) {
-    NanScope();
-
-    Local<Object> ret;
-    NanReturnValue(ret);
-}
-
 void init(v8::Handle<v8::Object> exports) {
     NODE_SET_METHOD(exports, "compress", compress);
-    NODE_SET_METHOD(exports, "decompress", decompress);
 }
 
 NODE_MODULE(lzma, init);
