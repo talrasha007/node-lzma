@@ -9,6 +9,23 @@ using namespace node;
 NAN_METHOD(compress) {
     NanScope();
 
+    if (args.Length() == 0) {
+        NanReturnUndefined();
+    }
+
+    int level = 5;
+    int threads = 1;
+
+    if (args[1]->IsNumber()) {
+        int argLvl = args[1]->Int32Value();
+        if (argLvl >= 0 && argLvl <= 9) level = argLvl;
+    }
+
+    if (args[2]->IsNumber()) {
+        int argTh = args[2]->Int32Value();
+        if (argTh == 1 || argTh == 2) level = argTh;
+    }
+
     size_t len = Buffer::Length(args[0]);
     const char *in = Buffer::Data(args[0]);
 
@@ -17,11 +34,13 @@ NAN_METHOD(compress) {
 
     size_t outLen = len + 128 + len / 3;
     char* out = new char[outLen];
-    int res = LzmaCompress((unsigned char*)out + propsSize, &outLen, (unsigned char*)in, len, props, &propsSize, 5, (1 << 24), 3, 0, 2, 32, 2);
+    int res = LzmaCompress((unsigned char*)out + propsSize, &outLen, (unsigned char*)in, len, props, &propsSize, level, 0, -1, -1, -1, -1, threads);
 
     Local<Object> ret = NanNewBufferHandle(outLen);
     char *retBuf = Buffer::Data(ret);
     memcpy(retBuf, out, outLen);
+
+    delete out;
     NanReturnValue(ret);
 }
 
