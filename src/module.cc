@@ -38,15 +38,34 @@ private:
     static NAN_METHOD(push) {
         NanScope();
 
-        size_t srcLen = Buffer::Length(args[0]);
+        size_t srcPos = args[1]->Uint32Value();
+        size_t srcLen = Buffer::Length(args[0]) - srcPos;
         char *src = Buffer::Data(args[0]);
 
         LzmaDec *ptr = ObjectWrap::Unwrap<LzmaDec>(args.This());
+        if (ptr->_propBufSize < sizeof(ptr->_propBuf)) {
+            for (; srcLen > 0 && ptr->_propBufSize < sizeof(ptr->_propBuf);) {
+                ptr->_propBuf[ptr->_propBufSize++] = src[srcPos++];
+                --srcLen;
+            }
 
-        ELzmaStatus status = LZMA_STATUS_NOT_SPECIFIED;
-        LzmaDec_DecodeToDic(&ptr->_handle, sizeof(ptr->_outBuf), (Byte*)src, &srcLen, LZMA_FINISH_ANY, &status);
+            if (ptr->_propBufSize == sizeof(ptr->_propBuf)) {
+                LzmaDec_AllocateProbs(&ptr->_handle, ptr->_propBuf, ptr->_propBufSize, &g_Alloc);
 
-        NanReturnValue(NanNew(double(srcLen)));
+                ptr->_handle.dic = ptr->_outBuf;
+                ptr->_handle.dicBufSize = sizeof(ptr->_outBuf);
+                LzmaDec_Init(&ptr->_handle);
+            } else {
+                NanReturnValue(NanNew(double(srcPos + srcLen)));
+            }
+        }
+
+        if (srcLen > 0) {
+            ELzmaStatus status = LZMA_STATUS_NOT_SPECIFIED;
+            auto res = LzmaDec_DecodeToDic(&ptr->_handle, sizeof(ptr->_outBuf), (Byte*)src + srcPos, &srcLen, LZMA_FINISH_ANY, &status);
+        }
+
+        NanReturnValue(NanNew(double(srcPos + srcLen)));
     }
 
     static NAN_METHOD(getUncompressed) {
@@ -70,24 +89,16 @@ private:
     }
 
 private:
-    LzmaDec() : _propBufSz(LZMA_PROPS_SIZE) {
+    LzmaDec() : _propBufSize(0) {
         LzmaDec_Construct(&_handle);
-        LzmaDec_AllocateProbs(&_handle, _propBuf, _propBufSz, &g_Alloc);
-
-        _handle.dic = _outBuf;
-        _handle.dicBufSize = _outBufLen;
-        LzmaDec_Init(&_handle);
     }
 
 private:
     CLzmaDec _handle;
-    CLzmaEncProps _props;
 
-    Byte _outBuf[8192];
-    size_t _outBufLen;
-
+    size_t _propBufSize;
     Byte _propBuf[LZMA_PROPS_SIZE];
-    size_t _propBufSz;
+    Byte _outBuf[8192];
 };
 
 class LzmaEnc : public ObjectWrap {
@@ -140,10 +151,16 @@ private:
         LzmaEnc_MemEncode(ptr->_handle, (Byte*)dst, &dstLen, (Byte*)src, srcLen,
                           0, NULL, &g_Alloc, &g_Alloc);
         
-        
-        Local<Object> ret = NanNewBufferHandle(dstLen);
+        size_t retLen = ptr->_firstPass ? dstLen + ptr->_propBufSz : dstLen;
+        Local<Object> ret = NanNewBufferHandle(retLen);
         char *retBuf = Buffer::Data(ret);
-        memcpy(retBuf, dst, dstLen);
+        if (ptr->_firstPass) {
+            memcpy(retBuf, ptr->_propBuf, ptr->_propBufSz);
+            memcpy(retBuf + ptr->_propBufSz, dst, dstLen);
+            ptr->_firstPass = false;
+        } else {
+            memcpy(retBuf, dst, dstLen);
+        }
         
         delete dst;
         NanReturnValue(ret);
@@ -160,7 +177,7 @@ private:
     }
     
 private:
-    LzmaEnc(int level, int threads) : _propBufSz(LZMA_PROPS_SIZE) {
+    LzmaEnc(int level, int threads) : _firstPass(true), _propBufSz(LZMA_PROPS_SIZE) {
         LzmaEncProps_Init(&_props);
         _props.level = level;
         _props.numThreads = threads;
@@ -175,6 +192,7 @@ private:
     CLzmaEncHandle _handle;
     CLzmaEncProps _props;
     
+    bool _firstPass;
     Byte _propBuf[LZMA_PROPS_SIZE];
     size_t _propBufSz;
 };
@@ -202,16 +220,15 @@ NAN_METHOD(compress) {
     size_t len = Buffer::Length(args[0]);
     const char *in = Buffer::Data(args[0]);
 
-    unsigned char props[LZMA_PROPS_SIZE];
     size_t propsSize = LZMA_PROPS_SIZE;
 
     size_t outLen = len + 128 + len / 3;
     char *out = new char[outLen];
-    LzmaCompress((unsigned char*)out + propsSize, &outLen, (unsigned char*)in, len, props, &propsSize, level, 0, -1, -1, -1, -1, threads);
+    LzmaCompress((Byte*)out + propsSize, &outLen, (Byte*)in, len, (Byte*)out, &propsSize, level, 0, -1, -1, -1, -1, threads);
 
-    Local<Object> ret = NanNewBufferHandle(outLen);
+    Local<Object> ret = NanNewBufferHandle(outLen + propsSize);
     char *retBuf = Buffer::Data(ret);
-    memcpy(retBuf, out, outLen);
+    memcpy(retBuf, out, outLen + propsSize);
 
     delete out;
     NanReturnValue(ret);
