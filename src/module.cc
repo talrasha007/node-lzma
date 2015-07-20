@@ -4,12 +4,93 @@
 #include <Alloc.h>
 #include <LzmaLib.h>
 #include <LzmaEnc.h>
+#include <LzmaDec.h>
 
 using namespace std;
 using namespace v8;
 using namespace node;
 
-class LzmaEnc : public node::ObjectWrap {
+class LzmaDec : public ObjectWrap {
+public:
+    static void setup(Handle<Object>& exports) {
+        const char* className = "LzmaDec";
+
+        Local<FunctionTemplate> tpl = NanNew<FunctionTemplate>(LzmaDec::ctor);
+        tpl->SetClassName(NanNew(className));
+        tpl->InstanceTemplate()->SetInternalFieldCount(1);
+
+        NODE_SET_PROTOTYPE_METHOD(tpl, "push", LzmaDec::push);
+        NODE_SET_PROTOTYPE_METHOD(tpl, "getUncompressed", LzmaDec::getUncompressed);
+        NODE_SET_PROTOTYPE_METHOD(tpl, "destroy", LzmaDec::destroy);
+
+        exports->Set(NanNew(className), tpl->GetFunction());
+    }
+
+private:
+    static NAN_METHOD(ctor) {
+        NanScope();
+
+        LzmaDec *ptr = new LzmaDec();
+        ptr->Wrap(args.This());
+        NanReturnValue(args.This());
+    }
+
+    static NAN_METHOD(push) {
+        NanScope();
+
+        size_t srcLen = Buffer::Length(args[0]);
+        char *src = Buffer::Data(args[0]);
+
+        LzmaDec *ptr = ObjectWrap::Unwrap<LzmaDec>(args.This());
+
+        ELzmaStatus status = LZMA_STATUS_NOT_SPECIFIED;
+        LzmaDec_DecodeToDic(&ptr->_handle, sizeof(ptr->_outBuf), (Byte*)src, &srcLen, LZMA_FINISH_ANY, &status);
+
+        NanReturnValue(NanNew(double(srcLen)));
+    }
+
+    static NAN_METHOD(getUncompressed) {
+        NanScope();
+
+        LzmaDec *ptr = ObjectWrap::Unwrap<LzmaDec>(args.This());
+        Local<Object> ret = NanNewBufferHandle(ptr->_handle.dicPos);
+        char *retBuf = Buffer::Data(ret);
+        memcpy(retBuf, ptr->_outBuf, ptr->_handle.dicPos);
+
+        NanReturnValue(ret);
+    }
+
+    static NAN_METHOD(destroy) {
+        NanScope();
+
+        LzmaDec *ptr = ObjectWrap::Unwrap<LzmaDec>(args.This());
+        LzmaDec_FreeProbs(&ptr->_handle, &g_Alloc);
+
+        NanReturnUndefined();
+    }
+
+private:
+    LzmaDec() : _propBufSz(LZMA_PROPS_SIZE) {
+        LzmaDec_Construct(&_handle);
+        LzmaDec_AllocateProbs(&_handle, _propBuf, _propBufSz, &g_Alloc);
+
+        _handle.dic = _outBuf;
+        _handle.dicBufSize = _outBufLen;
+        LzmaDec_Init(&_handle);
+    }
+
+private:
+    CLzmaDec _handle;
+    CLzmaEncProps _props;
+
+    Byte _outBuf[8192];
+    size_t _outBufLen;
+
+    Byte _propBuf[LZMA_PROPS_SIZE];
+    size_t _propBufSz;
+};
+
+class LzmaEnc : public ObjectWrap {
 public:
     static void setup(Handle<Object>& exports) {
         const char* className = "LzmaEnc";
@@ -139,6 +220,7 @@ NAN_METHOD(compress) {
 void init(v8::Handle<v8::Object> exports) {
     NODE_SET_METHOD(exports, "compress", compress);
     
+    LzmaDec::setup(exports);
     LzmaEnc::setup(exports);
 }
 
