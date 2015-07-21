@@ -10,7 +10,14 @@
         "<(module_root_dir)/deps/lzma.gyp:liblzma"
       ],
       "sources": [
-        "src/module.cc"
+        "src/module.cc",
+        "src/buffer_exports.h",
+        "src/enc_stream_exports.h",
+        "src/dec_stream_exports.h",
+        "src/stream.h",
+        "src/stream.cc",
+        "src/lzma.h",
+        "src/lzma.cc"
       ],
       "conditions": [
         [
