@@ -6,6 +6,8 @@
 #include <LzmaEnc.h>
 #include <LzmaDec.h>
 
+#include "lzma.h"
+
 using namespace std;
 using namespace v8;
 using namespace node;
@@ -75,6 +77,7 @@ private:
         Local<Object> ret = NanNewBufferHandle(ptr->_handle.dicPos);
         char *retBuf = Buffer::Data(ret);
         memcpy(retBuf, ptr->_outBuf, ptr->_handle.dicPos);
+        ptr->_handle.dicPos = 0;
 
         NanReturnValue(ret);
     }
@@ -197,48 +200,10 @@ private:
     size_t _propBufSz;
 };
 
-NAN_METHOD(compress) {
-    NanScope();
-
-    if (args.Length() == 0) {
-        NanReturnUndefined();
-    }
-
-    int level = 5;
-    int threads = 1;
-
-    if (args[1]->IsNumber()) {
-        int argLvl = args[1]->Int32Value();
-        if (argLvl >= 0 && argLvl <= 9) level = argLvl;
-    }
-
-    if (args[2]->IsNumber()) {
-        int argTh = args[2]->Int32Value();
-        if (argTh == 1 || argTh == 2) threads= argTh;
-    }
-
-    size_t len = Buffer::Length(args[0]);
-    const char *in = Buffer::Data(args[0]);
-
-    size_t propsSize = LZMA_PROPS_SIZE;
-
-    size_t outLen = len + 128 + len / 3;
-    char *out = new char[outLen];
-    LzmaCompress((Byte*)out + propsSize, &outLen, (Byte*)in, len, (Byte*)out, &propsSize, level, 0, -1, -1, -1, -1, threads);
-
-    Local<Object> ret = NanNewBufferHandle(outLen + propsSize);
-    char *retBuf = Buffer::Data(ret);
-    memcpy(retBuf, out, outLen + propsSize);
-
-    delete out;
-    NanReturnValue(ret);
-}
-
 void init(v8::Handle<v8::Object> exports) {
-    NODE_SET_METHOD(exports, "compress", compress);
-    
-    LzmaDec::setup(exports);
-    LzmaEnc::setup(exports);
+    Local<Object> lzma = NanNew<Object>();
+    LzmaTr::setup(lzma);
+    exports->Set(NanNew("lzma"), lzma);
 }
 
 NODE_MODULE(lzma, init);
