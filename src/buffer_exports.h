@@ -65,7 +65,7 @@ public:
             NanReturnUndefined();
         }
         v8::Local<v8::Object> ret = NanNewBufferHandle(outLen);
-        char *out = Buffer::Data(ret);
+        char *out = node::Buffer::Data(ret);
 
         if (TR::decompress(out, &outLen, in, &len) != 0) {
             NanThrowError("Bad input.");

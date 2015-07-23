@@ -11,6 +11,7 @@ using namespace std;
 
 void LzmaTr::setup(v8::Handle<v8::Object>& exports) {
     NODE_SET_METHOD(exports, "compress", BufferExports<LzmaTr>::compress);
+    NODE_SET_METHOD(exports, "decompress", BufferExports<LzmaTr>::decompress);
 }
 
 size_t LzmaTr::getUnpackSize(const char *in, size_t len) {
@@ -20,7 +21,7 @@ size_t LzmaTr::getUnpackSize(const char *in, size_t len) {
     }
 
     if (unpackSize > 2ULL * 1024 * 1024 * 1024) {
-        cout << "Unpack size is too large. Bad input or you should try stream api." << endl;
+        cout << "Unpack size " << unpackSize << " is too large. Bad input or you should try stream api." << endl;
         return 0;
     }
 
@@ -37,8 +38,9 @@ int LzmaTr::compress(char *out, size_t *outLen, const char *in, size_t inLen, in
 
     int r = LzmaCompress((Byte*)out + propsSize + 8, outLen, (Byte*)in, inLen, (Byte*)out, &propsSize, level, 0, -1, -1, -1, -1, threads);
     for (int i = 0; i < 8; i++) {
-        out[propsSize++] = char(Byte(*outLen >> (8 * i)));
+        out[propsSize++] = char(Byte(inLen >> (8 * i)));
     }
 
+    *outLen += propsSize + 8;
     return r;
 }
