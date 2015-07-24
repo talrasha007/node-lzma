@@ -8,13 +8,13 @@ public:
 
 public:
     bool eof() { return _cur >= _end; }
+    bool overflow() { return _cur > _end; }
     size_t read() { return _cur - _in; }
 
 private:
     static Byte read(void *p) {
         BufferInStream *pthis = (BufferInStream*)p;
-        if (pthis->_cur >= pthis->_end) std::cout << "EOF" << std::endl;
-        return pthis->_cur < pthis->_end ? Byte(*pthis->_cur++) : 0;
+        return pthis->_cur < pthis->_end ? Byte(*pthis->_cur++) : (++pthis->_cur, 0);
     }
 
 private:

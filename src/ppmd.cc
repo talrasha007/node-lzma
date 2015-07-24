@@ -74,7 +74,7 @@ int PpmdTr::decompress(char *out, size_t *outLen, const char *in, size_t *inLen)
     Ppmd7z_RangeDec_Init(&desc);
 
     size_t processed = 0;
-    while (!is.eof()) {
+    while (!is.overflow() && processed < *outLen) {
         int sym = Ppmd7_DecodeSymbol(ppmd, &desc.p);
         if (sym < 0) break;
         ++processed;

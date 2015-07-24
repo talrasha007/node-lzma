@@ -18,5 +18,7 @@ alg.forEach(function (a) {
 
     if (decompressed.equals(buf)) {
         console.log('Data is exactly the same...');
+    } else {
+        console.log('Opps....');
     }
 });
