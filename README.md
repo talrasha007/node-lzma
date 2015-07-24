@@ -1,9 +1,10 @@
 # node-lzma
-  Node.js bindings for the xz compression library.  
+  Node.js bindings for the LZMA SDK library.  
 
 # Why i write this package
   - It's native, performance is almost the same as c version.
   - I need ppmd algorithm.
+  - Tested on Windows / Linux / OSX
 
 # API
 ```
