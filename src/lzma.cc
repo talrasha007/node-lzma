@@ -15,6 +15,7 @@ void LzmaTr::setup(v8::Handle<v8::Object>& exports) {
 }
 
 size_t LzmaTr::getUnpackSize(const char *in, size_t len) {
+    if (len <= 5 + 8) return 0;
     size_t unpackSize = 0;
     for (int i = 0; i < 8; i++) {
         unpackSize += size_t(Byte(in[LZMA_PROPS_SIZE + i])) << (i * 8);
@@ -33,6 +34,9 @@ int LzmaTr::decompress(char *out, size_t *outLen, const char *in, size_t *inLen)
 }
 
 int LzmaTr::compress(char *out, size_t *outLen, const char *in, size_t inLen, int level, int threads) {
+    if (level < 0 || level > 9) level = 5;
+    if (threads < 1 || threads > 2) threads = 1;
+
     size_t propsSize = LZMA_PROPS_SIZE;
     *outLen -= propsSize + 8;
 

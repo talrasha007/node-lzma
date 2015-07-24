@@ -15,7 +15,12 @@
         "lzma<(lzma_ver)/LzFindMt.c",
         "lzma<(lzma_ver)/LzmaDec.c",
         "lzma<(lzma_ver)/LzmaEnc.c",
-        "lzma<(lzma_ver)/LzmaLib.c"
+        "lzma<(lzma_ver)/LzmaLib.c",
+        "lzma<(lzma_ver)/Lzma2Dec.c",
+        "lzma<(lzma_ver)/Lzma2Enc.c",
+        "lzma<(lzma_ver)/Ppmd7.c",
+        "lzma<(lzma_ver)/Ppmd7Dec.c",
+        "lzma<(lzma_ver)/Ppmd7Enc.c"
       ],
       "conditions": [
         [

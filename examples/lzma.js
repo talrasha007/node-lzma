@@ -1,15 +1,22 @@
 "use strict";
 
-var lzma = require('../').lzma;
+var liblzma = require('../');
 
 var buf = require('fs').readFileSync(__dirname + '/stream.js');
 
 console.log('Origin: ', buf.length, buf);
 
-var compressed = lzma.compress(buf);
-console.log('Compressed: ', compressed.length, compressed);
+var alg = ['lzma', 'ppmd'];
 
-var decompressed = lzma.decompress(compressed);
-console.log('Decompressed: ', decompressed.length, decompressed);
+alg.forEach(function (a) {
+    console.log('Using alg: ', a);
+    var compressed = liblzma[a].compress(buf);
+    console.log('Compressed: ', compressed.length, compressed);
 
-require('fs').writeFileSync(__dirname + '/test.lzma', compressed);
+    var decompressed = liblzma[a].decompress(compressed);
+    console.log('Decompressed: ', decompressed.length, decompressed);
+
+    if (decompressed.equals(buf)) {
+        console.log('Data is exactly the same...');
+    }
+});

@@ -17,7 +17,9 @@
         "src/stream.h",
         "src/stream.cc",
         "src/lzma.h",
-        "src/lzma.cc"
+        "src/lzma.cc",
+        "src/ppmd.h",
+        "src/ppmd.cc"
       ],
       "conditions": [
         [

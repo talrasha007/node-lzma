@@ -20,18 +20,11 @@ public:
             NanReturnUndefined();
         }
 
-        int level = 5;
-        int threads = 1;
+        int arg1 = -1;
+        int arg2 = -1;
 
-        if (args[1]->IsNumber()) {
-            int argLvl = args[1]->Int32Value();
-            if (argLvl >= 0 && argLvl <= 9) level = argLvl;
-        }
-
-        if (args[2]->IsNumber()) {
-            int argTh = args[2]->Int32Value();
-            if (argTh == 1 || argTh == 2) threads = argTh;
-        }
+        if (args[1]->IsNumber()) { arg1 = args[1]->Int32Value(); }
+        if (args[2]->IsNumber()) { arg2 = args[2]->Int32Value(); }
 
         size_t len = node::Buffer::Length(args[0]);
         const char *in = node::Buffer::Data(args[0]);
@@ -39,7 +32,7 @@ public:
         size_t outLen = len + 128 + std::min(size_t(128 * 1024 * 1024), len / 3);
         char *out = new char[outLen];
 
-        TR::compress(out, &outLen, in, len, level, threads);
+        TR::compress(out, &outLen, in, len, arg1, arg2);
 
         v8::Local<v8::Object> ret = NanNewBufferHandle(outLen);
         char *retBuf = node::Buffer::Data(ret);
