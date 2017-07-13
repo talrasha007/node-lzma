@@ -1,11 +1,12 @@
 {
   "name": "node-lzma",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "repository": "https://github.com/talrasha007/node-lzma.git",
   "description": "node bindings for the lzma compression library",
   "readme": "node bindings for the lzma compression library",
   "dependencies": {
-    "nan": "~1.8.4"
+    "nan": "^2.6.2",
+    "nnu": "~0.1.7"
   },
   "main": "lib/index.js"
 }

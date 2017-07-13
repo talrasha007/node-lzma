@@ -9,9 +9,9 @@
 
 using namespace std;
 
-void LzmaTr::setup(v8::Handle<v8::Object>& exports) {
-    NODE_SET_METHOD(exports, "compress", BufferExports<LzmaTr>::compress);
-    NODE_SET_METHOD(exports, "decompress", BufferExports<LzmaTr>::decompress);
+void LzmaTr::setup(v8::Local<v8::Object>& exports) {
+    Nan::Export(exports, "compress", BufferExports<LzmaTr>::compress);
+    Nan::Export(exports, "decompress", BufferExports<LzmaTr>::decompress);
 }
 
 size_t LzmaTr::getUnpackSize(const char *in, size_t len) {

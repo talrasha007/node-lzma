@@ -40,9 +40,9 @@ void writePpmdHead(char *head, unsigned order, UInt32 dicmem) {
     SetUi32(head + 1, dicmem);
 }
 
-void PpmdTr::setup(v8::Handle<v8::Object>& exports) {
-    NODE_SET_METHOD(exports, "compress", BufferExports<PpmdTr>::compress);
-    NODE_SET_METHOD(exports, "decompress", BufferExports<PpmdTr>::decompress);
+void PpmdTr::setup(v8::Local<v8::Object>& exports) {
+    Nan::Export(exports, "compress", BufferExports<PpmdTr>::compress);
+    Nan::Export(exports, "decompress", BufferExports<PpmdTr>::decompress);
 }
 
 size_t PpmdTr::getUnpackSize(const char *in, size_t len) {

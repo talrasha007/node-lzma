@@ -4,6 +4,7 @@
       "target_name": "lzma",
 	  "include_dirs" : [
         "<!(node -e \"require('nan')\")",
+        "<!(node -e \"require('nnu')\")",
         "deps/lzma1505"
       ],
       "dependencies": [
