@@ -4,6 +4,7 @@
   "repository": "https://github.com/talrasha007/node-lzma.git",
   "description": "node bindings for the lzma compression library",
   "readme": "node bindings for the lzma compression library",
+  "license": "MIT",
   "dependencies": {
     "nan": "^2.6.2",
     "nnu": "~0.1.7"
